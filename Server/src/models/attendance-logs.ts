@@ -1,8 +1,8 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 // Check-in/out Log
-export interface IAttendanceLog {
-  customerId: Schema.Types.ObjectId;
+export interface IAttendanceLog extends Document {
+  customerId: Types.ObjectId;
   cabinNumber: string;
   checkInTime: Date; // timestamp
   checkOutTime?: Date; // timestamp

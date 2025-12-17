@@ -1,9 +1,9 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 
 // Guest Request
-export interface IGuestRequest {
-  customerId: Schema.Types.ObjectId;
+export interface IGuestRequest extends Document{
+  customerId: Types.ObjectId;
   cabinNumber: string;
   guestName: string;
   expectedTime: Date; // timestamp
@@ -18,7 +18,7 @@ export const GuestRequestSchema = new Schema<IGuestRequest>(
         customerId:{
             type:Schema.Types.ObjectId
         },
-        cabinNumber:Number,
+        cabinNumber:String,
         guestName:String,
         expectedTime: Date, // timestamp
   status: {type:String,enum:['pending' , 'completed']},
