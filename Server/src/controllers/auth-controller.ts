@@ -13,12 +13,10 @@ export const loginUser = async (req: Request, res: Response) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        
         // Check password
         if (user.password !== req.body.password) {
             return res.status(401).json({ message: 'Invalid password' });
         }
-
         const token = jwt.sign(
             {
                 userId:user._id,
@@ -28,7 +26,6 @@ export const loginUser = async (req: Request, res: Response) => {
             process.env.ACCESS_TOKEN_SECRET as string,
             {expiresIn:'24h'}
         )
-        
         // Success
         res.status(200).json({
             token,
@@ -37,10 +34,8 @@ export const loginUser = async (req: Request, res: Response) => {
             name: user.name,
             email: user.email,
             role: user.role
-
             }
-        });
-        
+        });  
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

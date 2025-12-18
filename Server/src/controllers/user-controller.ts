@@ -1,17 +1,27 @@
 import { Request, Response } from 'express';
 import { User, AttendanceLog, Order, GuestRequest } from "../models"
 import { UserJwtPayload } from '../types/express';
-import mongoose from 'mongoose';
+
+// Get current user
+export const getCurrentUser = async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as UserJwtPayload)?.userId;
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch user' });
+  }
+}
 
 // Toggle attendance (check-in/check-out)
 export const toggleAttendance = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as UserJwtPayload)?.userId;
-
-    if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
     const user = await User.findById(userId);
 
     if (!user) {
@@ -19,24 +29,17 @@ export const toggleAttendance = async (req: Request, res: Response) => {
     }
 
     const now = new Date();
-
-    // Get start and end of today
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(now);
-    todayEnd.setHours(23, 59, 59, 999);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     if (user.isCheckedIn) {
-      // Check-out: find the open attendance log and close it
-      const openLog = await AttendanceLog.findOne({
-        customerId: new mongoose.Types.ObjectId(userId),
-        checkOutTime: null
-      });
+      // Check-out
+      const openLog = await AttendanceLog.findOne({ customerId: userId, checkOutTime: null });
 
       if (openLog) {
         const hoursSpent = (now.getTime() - openLog.checkInTime.getTime()) / (1000 * 60 * 60);
         openLog.checkOutTime = now;
-        openLog.hoursSpent = Math.round(hoursSpent * 100) / 100; // round to 2 decimals
+        openLog.hoursSpent = Math.round(hoursSpent * 100) / 100;
         await openLog.save();
       }
 
@@ -46,22 +49,20 @@ export const toggleAttendance = async (req: Request, res: Response) => {
 
       return res.json({ message: 'Checked out successfully', isCheckedIn: false });
     } else {
-      // Check if user already has a completed attendance log for today
+      // Check if already checked in/out today
       const todayLog = await AttendanceLog.findOne({
-        customerId: new mongoose.Types.ObjectId(userId),
-        checkInTime: { $gte: todayStart, $lte: todayEnd },
-        checkOutTime: { $ne: null } // Already checked out
+        customerId: userId,
+        checkInTime: { $gte: today },
+        checkOutTime: { $ne: null }
       });
 
       if (todayLog) {
-        return res.status(400).json({
-          message: 'You have already checked in and out today. Only one attendance per day is allowed.'
-        });
+        return res.status(400).json({ message: 'Already checked in and out today' });
       }
 
-      // Check-in: create new attendance log
+      // Check-in
       await AttendanceLog.create({
-        customerId: new mongoose.Types.ObjectId(userId),
+        customerId: userId,
         cabinNumber: user.cabinNumber,
         checkInTime: now,
         addedBy: 'customer'
@@ -74,33 +75,9 @@ export const toggleAttendance = async (req: Request, res: Response) => {
       return res.json({ message: 'Checked in successfully', isCheckedIn: true });
     }
   } catch (error) {
-    console.error('Error toggling attendance:', error);
     res.status(500).json({ message: 'Failed to toggle attendance' });
   }
 };
-
-// Get current logged-in user (secure - uses JWT token)
-export const getCurrentUser = async (req: Request, res: Response) => {
-  try {
-    // Extract userId from JWT token (set by authMiddleware)
-    const userId = (req.user as UserJwtPayload)?.userId;
-
-    if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    const user = await User.findById(userId).select('-password'); // Exclude password
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ message: 'Failed to fetch user' });
-  }
-}
 
 // Create order (chai/coffee)
 export const createOrder = async (req: Request, res: Response) => {
@@ -108,13 +85,8 @@ export const createOrder = async (req: Request, res: Response) => {
     const userId = (req.user as UserJwtPayload)?.userId;
     const { type } = req.body;
 
-    if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    // Validate order type
     if (!type || !['chai', 'coffee'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid order type. Must be "chai" or "coffee"' });
+      return res.status(400).json({ message: 'Invalid order type' });
     }
 
     const user = await User.findById(userId);
@@ -123,49 +95,40 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user is checked in
     if (!user.isCheckedIn) {
-      return res.status(400).json({ message: 'You must be checked in to place an order' });
+      return res.status(400).json({ message: 'You must be checked in to order' });
     }
 
     if (user.todayChaiCoffeeUsed >= 1) {
-  return res.status(400).json({
-    message: 'Limit reached for the day. You can only order 1 chai or coffee per day.'
-  });
-}
+      return res.status(400).json({ message: 'Daily limit reached' });
+    }
 
     const order = await Order.create({
-      customerId: new mongoose.Types.ObjectId(userId),
+      customerId: userId,
       cabinNumber: user.cabinNumber,
       type,
       status: 'pending',
       requestedAt: new Date(),
       addedBy: 'customer'
     });
-user.todayChaiCoffeeUsed = 1;
-await user.save();
-    return res.status(201).json({
-      message: `${type.charAt(0).toUpperCase() + type.slice(1)} ordered successfully`,
-      order
-    });
+
+    user.todayChaiCoffeeUsed = 1;
+    await user.save();
+
+    res.status(201).json({ message: 'Order placed', order });
   } catch (error) {
-    console.error('Error creating order:', error);
     res.status(500).json({ message: 'Failed to create order' });
   }
 }
 
+// Register guest
 export const registerGuest = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as UserJwtPayload)?.userId;
     const { guestName, expectedTime } = req.body;
 
-    if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    // Validate required fields
     if (!guestName || !expectedTime) {
-      return res.status(400).json({ message: 'Guest name and expected time are required' });
+      return res.status(400).json({ message: 'Guest name and expected time required' });
     }
 
     const user = await User.findById(userId);
@@ -174,13 +137,12 @@ export const registerGuest = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user is checked in
     if (!user.isCheckedIn) {
       return res.status(400).json({ message: 'You must be checked in to register a guest' });
     }
 
     const guestRequest = await GuestRequest.create({
-      customerId: new mongoose.Types.ObjectId(userId),
+      customerId: userId,
       cabinNumber: user.cabinNumber,
       guestName,
       expectedTime: new Date(expectedTime),
@@ -189,12 +151,8 @@ export const registerGuest = async (req: Request, res: Response) => {
       addedBy: 'customer'
     });
 
-    return res.status(201).json({
-      message: 'Guest registered successfully',
-      guestRequest
-    });
+    res.status(201).json({ message: 'Guest registered', guestRequest });
   } catch (error) {
-    console.error('Error registering guest:', error);
     res.status(500).json({ message: 'Failed to register guest' });
   }
 }
