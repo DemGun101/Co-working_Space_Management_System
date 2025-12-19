@@ -48,7 +48,6 @@ export const toggleAttendance = async (req: Request, res: Response) => {
       }
 
       user.isCheckedIn = false;
-      user.lastCheckOut = now;
       await user.save();
 
       return res.json({
@@ -76,7 +75,6 @@ export const toggleAttendance = async (req: Request, res: Response) => {
       });
 
       user.isCheckedIn = true;
-      user.lastCheckIn = now;
       await user.save();
 
       return res.json({
@@ -173,7 +171,7 @@ export const registerGuest = async (req: Request, res: Response) => {
   }
 };
 
-// Get user activity (today's guests)
+// Get user activity (today's guests, attendance, and order)
 export const getActivity = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as UserJwtPayload)?.userId;
@@ -188,7 +186,33 @@ export const getActivity = async (req: Request, res: Response) => {
       requestedAt: { $gte: today },
     }).sort({ requestedAt: -1 });
 
-    res.json({ guests });
+    // Get today's attendance log for this user
+    const attendance = await AttendanceLog.findOne({
+      customerId: userId,
+      checkInTime: { $gte: today },
+    });
+
+    // Get today's order for this user
+    const order = await Order.findOne({
+      customerId: userId,
+      requestedAt: { $gte: today },
+    });
+
+    res.json({
+      guests,
+      attendance: attendance
+        ? {
+            checkInTime: attendance.checkInTime,
+            checkOutTime: attendance.checkOutTime,
+          }
+        : null,
+      order: order
+        ? {
+            type: order.type,
+            requestedAt: order.requestedAt,
+          }
+        : null,
+    });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch activity" });
   }

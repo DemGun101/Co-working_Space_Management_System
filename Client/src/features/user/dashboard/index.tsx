@@ -9,8 +9,6 @@ import {
   useToggleAttendance,
 } from "@/Api/user";
 import Actions from "./components/actions";
-import { toast } from "sonner";
-import axios from "axios";
 import { useState } from "react";
 import GuestModal from "./components/guest-modal";
 import Activity from "./components/activity";
@@ -25,16 +23,9 @@ const CustomerDashboard = () => {
   const { mutate: registerGuest } = useRegisterGuest();
   const handleCheckInOut = () => {
     toggleAttendance(undefined, {
-      onSuccess: (res) => {
+      onSuccess: () => {
         refetch();
-        toast.success(res.message);
-      },
-      onError: (error) => {
-        if (axios.isAxiosError(error)) {
-          toast.error(
-            error.response?.data?.message || "Failed to toggle attendance"
-          );
-        }
+        refetchActivity();
       },
     });
   };
@@ -43,9 +34,9 @@ const CustomerDashboard = () => {
     createOrder(
       { type: "chai" },
       {
-        onSuccess: (res) => {
+        onSuccess: () => {
           refetch();
-          toast.success(res.message);
+          refetchActivity();
         },
       }
     );
@@ -55,9 +46,9 @@ const CustomerDashboard = () => {
     createOrder(
       { type: "coffee" },
       {
-        onSuccess: (res) => {
+        onSuccess: () => {
           refetch();
-          toast.success(res.message);
+          refetchActivity();
         },
       }
     );
@@ -87,7 +78,7 @@ const CustomerDashboard = () => {
       <Header user={user} onLogout={handleLogout} />
 
       {/* Centered content */}
-      <div className="flex-1 flex flex-col items-center justify-center mb-35 ">
+      <div className="flex-1 flex flex-col items-center justify-center pt-5 ">
         <div className="max-w-md w-full space-y-8">
           {/* Status */}
           <div className="text-center text-sm text-muted-foreground">
@@ -111,11 +102,7 @@ const CustomerDashboard = () => {
           />
 
           {/* Recent Activity */}
-          <Activity
-            lastCheckIn={data?.lastCheckIn}
-            lastCheckOut={data?.lastCheckOut}
-            todayChaiCoffeeUsed={data?.todayChaiCoffeeUsed ?? 0}
-          />
+          <Activity />
         </div>
       </div>
     </div>

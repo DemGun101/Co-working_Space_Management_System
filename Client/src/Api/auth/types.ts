@@ -13,8 +13,6 @@ export interface User {
     cabinNumber?: string;
     todayChaiCoffeeUsed: number;
     isCheckedIn: boolean;
-    lastCheckIn?: string;
-    lastCheckOut?: string;
 }
 
 

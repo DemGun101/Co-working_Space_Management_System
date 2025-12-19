@@ -62,7 +62,21 @@ export interface Guest {
     addedBy: 'customer' | 'office-boy'
 }
 
+// Attendance type for activity
+export interface Attendance {
+    checkInTime: string;
+    checkOutTime?: string;
+}
+
+// Order type for activity
+export interface ActivityOrder {
+    type: 'chai' | 'coffee';
+    requestedAt: string;
+}
+
 // GET /user/activity response
 export interface GetActivityResponse {
-    guests: Guest[]
+    guests: Guest[];
+    attendance: Attendance | null;
+    order: ActivityOrder | null;
 }

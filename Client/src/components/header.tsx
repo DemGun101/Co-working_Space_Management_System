@@ -16,7 +16,12 @@ const Header = ({ user, onLogout }: HeaderProps) => {
             user.cabinNumber &&
             ` (Cabin ${user.cabinNumber})`}
         </span>
-        <Button variant="outline" size="sm" onClick={onLogout} className="flex">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onLogout}
+          className="flex cursor-pointer"
+        >
           logout
         </Button>
       </div>

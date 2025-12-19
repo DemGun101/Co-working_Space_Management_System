@@ -1,14 +1,10 @@
 import { useGetActivity, type Guest } from "@/Api/user";
 
-interface ActivityProps {
-  lastCheckIn?: string;
-  lastCheckOut?: string;
-  todayChaiCoffeeUsed: number;
-}
-
-const Activity = ({ lastCheckIn, lastCheckOut, todayChaiCoffeeUsed }: ActivityProps) => {
+const Activity = () => {
   const { data: activityData } = useGetActivity();
   const guests = activityData?.guests ?? [];
+  const attendance = activityData?.attendance;
+  const order = activityData?.order;
 
   const formatTime = (dateString?: string) => {
     if (!dateString) return null;
@@ -18,39 +14,44 @@ const Activity = ({ lastCheckIn, lastCheckOut, todayChaiCoffeeUsed }: ActivityPr
     });
   };
 
-  
-
-  const hasNoActivity = !lastCheckIn && !lastCheckOut && todayChaiCoffeeUsed === 0 && guests.length === 0;
+  const hasNoActivity = !attendance && !order && guests.length === 0;
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-muted-foreground text-center mb-4">Recent Activity</h3>
+      <h3 className="text-sm font-medium text-muted-foreground text-center mb-4">
+        Today Activity
+      </h3>
 
       <div className="space-y-2">
-        {lastCheckIn && (
+        {attendance?.checkInTime && (
           <div className="flex justify-between text-sm p-2 bg-muted rounded">
             <span>Checked In</span>
             <span className="text-muted-foreground">
-               {formatTime(lastCheckIn)}
+              {formatTime(attendance.checkInTime)}
             </span>
           </div>
         )}
-        {lastCheckOut && (
+        {attendance?.checkOutTime && (
           <div className="flex justify-between text-sm p-2 bg-muted rounded">
             <span>Checked Out</span>
             <span className="text-muted-foreground">
-              {formatTime(lastCheckOut)}
+              {formatTime(attendance.checkOutTime)}
             </span>
           </div>
         )}
-        {todayChaiCoffeeUsed > 0 && (
+        {order && (
           <div className="flex justify-between text-sm p-2 bg-muted rounded">
-            <span>Chai/Coffee Ordered</span>
-            <span className="text-muted-foreground">Today</span>
+            <span>{order.type === 'chai' ? 'Chai' : 'Coffee'} Ordered</span>
+            <span className="text-muted-foreground">
+              {formatTime(order.requestedAt)}
+            </span>
           </div>
         )}
         {guests.map((guest: Guest) => (
-          <div key={guest._id} className="flex justify-between text-sm p-2 bg-muted rounded">
+          <div
+            key={guest._id}
+            className="flex justify-between text-sm p-2 bg-muted rounded"
+          >
             <span>Guest: {guest.guestName}</span>
             <span className="text-muted-foreground">
               {formatTime(guest.expectedTime)}
@@ -58,7 +59,9 @@ const Activity = ({ lastCheckIn, lastCheckOut, todayChaiCoffeeUsed }: ActivityPr
           </div>
         ))}
         {hasNoActivity && (
-          <p className="text-sm text-muted-foreground text-center">No recent activity</p>
+          <p className="text-sm text-muted-foreground text-center">
+            No today activity
+          </p>
         )}
       </div>
     </div>

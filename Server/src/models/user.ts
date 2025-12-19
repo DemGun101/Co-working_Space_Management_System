@@ -9,8 +9,6 @@ export interface IUser {
   cabinNumber: string;
   todayChaiCoffeeUsed: number; // Max 1 per day
   isCheckedIn: boolean;
-  lastCheckIn?: Date; // timestamp
-  lastCheckOut?: Date; // timestamp
 }
 
 const UserSchema = new Schema<IUser>(
@@ -23,14 +21,7 @@ const UserSchema = new Schema<IUser>(
         },
         cabinNumber:String,
         todayChaiCoffeeUsed:Number,
-        isCheckedIn:Boolean,
-        lastCheckIn:{
-            type:Date,required:false
-        },
-        lastCheckOut:{
-            type:Date,required:false
-        }
-
+        isCheckedIn:Boolean
     }
 )
 
