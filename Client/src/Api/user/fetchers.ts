@@ -8,6 +8,7 @@ import type {
     CreateOrderResponse,
     RegisterGuestRequest,
     RegisterGuestResponse,
+    GetActivityResponse,
 } from './types'
 
 export const getMe = async (): Promise<GetMeResponse> => {
@@ -52,4 +53,9 @@ export const registerGuest = async (data: RegisterGuestRequest): Promise<Registe
         }
         throw error
     }
+}
+
+export const getActivity = async (): Promise<GetActivityResponse> => {
+    const response = await apiClient.get(API_ENDPOINTS.USER.GET_ACTIVITY)
+    return response.data
 }

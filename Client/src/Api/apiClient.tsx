@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
     },
     USER: {
         GET_ME: '/user/me',
+        GET_ACTIVITY: '/user/activity',
         TOGGLE_ATTENDANCE: '/user/attendance/toggle',
         CREATE_ORDER: '/user/order',
         REGISTER_GUEST: '/user/guest'

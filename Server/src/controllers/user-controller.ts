@@ -56,16 +56,16 @@ export const toggleAttendance = async (req: Request, res: Response) => {
         isCheckedIn: false,
       });
     } else {
-      // // Check if already checked in/out today
-      // const todayLog = await AttendanceLog.findOne({
-      //   customerId: userId,
-      //   checkInTime: { $gte: today },
-      //   checkOutTime: { $ne: null }
-      // });
+      // Check if already checked in/out today
+      const todayLog = await AttendanceLog.findOne({
+        customerId: userId,
+        checkInTime: { $gte: today },
+        checkOutTime: { $ne: null }
+      });
 
-      // if (todayLog) {
-      //   return res.status(400).json({ message: 'Already checked in and out today' });
-      // }
+      if (todayLog) {
+        return res.status(400).json({ message: 'Already checked in and out today' });
+      }
 
       // Check-in
       await AttendanceLog.create({
@@ -170,5 +170,26 @@ export const registerGuest = async (req: Request, res: Response) => {
     res.status(201).json({ message: "Guest registered", guestRequest });
   } catch (error) {
     res.status(500).json({ message: "Failed to register guest" });
+  }
+};
+
+// Get user activity (today's guests)
+export const getActivity = async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as UserJwtPayload)?.userId;
+
+    // Get today's start
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get today's guests for this user
+    const guests = await GuestRequest.find({
+      customerId: userId,
+      requestedAt: { $gte: today },
+    }).sort({ requestedAt: -1 });
+
+    res.json({ guests });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch activity" });
   }
 };

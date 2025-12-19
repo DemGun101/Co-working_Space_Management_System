@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   useCreateOrder,
   useGetMe,
+  useGetActivity,
   useRegisterGuest,
   useToggleAttendance,
 } from "@/Api/user";
@@ -17,6 +18,7 @@ import Activity from "./components/activity";
 const CustomerDashboard = () => {
   const navigate = useNavigate();
   const { data, refetch } = useGetMe();
+  const { refetch: refetchActivity } = useGetActivity();
   const { mutate: toggleAttendance } = useToggleAttendance();
   const { mutate: createOrder } = useCreateOrder();
   const [guestModalOpen, setGuestModalOpen] = useState(false);
@@ -65,7 +67,10 @@ const CustomerDashboard = () => {
     expectedTime: string;
   }) => {
     registerGuest(data, {
-      onSuccess: () => refetch(),
+      onSuccess: () => {
+        refetch();
+        refetchActivity();
+      },
     });
   };
   // Get user from localStorage
@@ -78,30 +83,34 @@ const CustomerDashboard = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Header user={user} onLogout={handleLogout} />
-      <div className="flex px-6 mt-4 gap-4">
-        <div className="p-4 bg-muted rounded-md h-fit">
-          <p>Status: {data?.isCheckedIn ? "Checked In" : "Checked Out"}</p>
-          <p>Today's Chai/Coffee: {data?.todayChaiCoffeeUsed ?? 0}</p>
-        </div>
-        <div className="flex-1 flex justify-center">
-          <div className="max-w-md w-full">
-            <Actions
-              isCheckedIn={data?.isCheckedIn ?? false}
-              onCheckInOut={handleCheckInOut}
-              onChai={handleOrderChai}
-              onCoffee={handleOrderCoffee}
-              onGuest={() => setGuestModalOpen(true)}
-            />
-            <GuestModal
-              open={guestModalOpen}
-              onOpenChange={setGuestModalOpen}
-              onSubmit={handleRegisterGuest}
-            />
+
+      {/* Centered content */}
+      <div className="flex-1 flex flex-col items-center justify-center mb-35 ">
+        <div className="max-w-md w-full space-y-8">
+          {/* Status */}
+          <div className="text-center text-sm text-muted-foreground">
+            <p>Status: {data?.isCheckedIn ? "Checked In" : "Checked Out"}</p>
+            <p>Today's Chai/Coffee: {data?.todayChaiCoffeeUsed ?? 0}</p>
           </div>
-        </div>
-        <div className="w-64">
+
+          {/* Action Buttons */}
+          <Actions
+            isCheckedIn={data?.isCheckedIn ?? false}
+            chaiCoffeeLimitReached={(data?.todayChaiCoffeeUsed ?? 0) >= 1}
+            onCheckInOut={handleCheckInOut}
+            onChai={handleOrderChai}
+            onCoffee={handleOrderCoffee}
+            onGuest={() => setGuestModalOpen(true)}
+          />
+          <GuestModal
+            open={guestModalOpen}
+            onOpenChange={setGuestModalOpen}
+            onSubmit={handleRegisterGuest}
+          />
+
+          {/* Recent Activity */}
           <Activity
             lastCheckIn={data?.lastCheckIn}
             lastCheckOut={data?.lastCheckOut}

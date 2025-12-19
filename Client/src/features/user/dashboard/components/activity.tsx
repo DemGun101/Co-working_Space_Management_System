@@ -1,3 +1,5 @@
+import { useGetActivity, type Guest } from "@/Api/user";
+
 interface ActivityProps {
   lastCheckIn?: string;
   lastCheckOut?: string;
@@ -5,6 +7,9 @@ interface ActivityProps {
 }
 
 const Activity = ({ lastCheckIn, lastCheckOut, todayChaiCoffeeUsed }: ActivityProps) => {
+  const { data: activityData } = useGetActivity();
+  const guests = activityData?.guests ?? [];
+
   const formatTime = (dateString?: string) => {
     if (!dateString) return null;
     return new Date(dateString).toLocaleTimeString("en-US", {
@@ -13,23 +18,20 @@ const Activity = ({ lastCheckIn, lastCheckOut, todayChaiCoffeeUsed }: ActivityPr
     });
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return null;
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
+  
+
+  const hasNoActivity = !lastCheckIn && !lastCheckOut && todayChaiCoffeeUsed === 0 && guests.length === 0;
 
   return (
     <div>
-      <h3 className="text-sm font-medium mb-3">Recent Activity</h3>
+      <h3 className="text-sm font-medium text-muted-foreground text-center mb-4">Recent Activity</h3>
+
       <div className="space-y-2">
         {lastCheckIn && (
           <div className="flex justify-between text-sm p-2 bg-muted rounded">
             <span>Checked In</span>
             <span className="text-muted-foreground">
-              {formatDate(lastCheckIn)} at {formatTime(lastCheckIn)}
+               {formatTime(lastCheckIn)}
             </span>
           </div>
         )}
@@ -37,7 +39,7 @@ const Activity = ({ lastCheckIn, lastCheckOut, todayChaiCoffeeUsed }: ActivityPr
           <div className="flex justify-between text-sm p-2 bg-muted rounded">
             <span>Checked Out</span>
             <span className="text-muted-foreground">
-              {formatDate(lastCheckOut)} at {formatTime(lastCheckOut)}
+              {formatTime(lastCheckOut)}
             </span>
           </div>
         )}
@@ -47,8 +49,16 @@ const Activity = ({ lastCheckIn, lastCheckOut, todayChaiCoffeeUsed }: ActivityPr
             <span className="text-muted-foreground">Today</span>
           </div>
         )}
-        {!lastCheckIn && !lastCheckOut && todayChaiCoffeeUsed === 0 && (
-          <p className="text-sm text-muted-foreground">No recent activity</p>
+        {guests.map((guest: Guest) => (
+          <div key={guest._id} className="flex justify-between text-sm p-2 bg-muted rounded">
+            <span>Guest: {guest.guestName}</span>
+            <span className="text-muted-foreground">
+              {formatTime(guest.expectedTime)}
+            </span>
+          </div>
+        ))}
+        {hasNoActivity && (
+          <p className="text-sm text-muted-foreground text-center">No recent activity</p>
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { Coffee, CupSoda, UserPlus, LogIn, LogOut } from "lucide-react";
 
 interface ActionsProps {
   isCheckedIn: boolean;
+  chaiCoffeeLimitReached: boolean;
   onCheckInOut: () => void;
   onChai: () => void;
   onCoffee: () => void;
@@ -11,6 +12,7 @@ interface ActionsProps {
 
 const Actions = ({
   isCheckedIn,
+  chaiCoffeeLimitReached,
   onCheckInOut,
   onChai,
   onCoffee,
@@ -21,20 +23,22 @@ const Actions = ({
       <Button
         variant="chai"
         size="xl"
-        className="flex-col text-[#E07B39]"
+        className={`flex-col ${chaiCoffeeLimitReached ? "text-gray-400" : "text-[#E07B39]"}`}
         onClick={onChai}
+        disabled={chaiCoffeeLimitReached}
       >
         Chai
-        <CupSoda className="size-12 text-[#E07B39]" strokeWidth={1} />
+        <CupSoda className={`size-12 ${chaiCoffeeLimitReached ? "text-gray-400" : "text-[#E07B39]"}`} strokeWidth={1} />
       </Button>
       <Button
         variant="coffee"
         size="xl"
-        className="flex-col text-[#8B5A2B]"
+        className={`flex-col ${chaiCoffeeLimitReached ? "text-gray-400" : "text-[#8B5A2B]"}`}
         onClick={onCoffee}
+        disabled={chaiCoffeeLimitReached}
       >
         Coffee
-        <Coffee className="size-12 text-[#8B5A2B]" strokeWidth={1} />
+        <Coffee className={`size-12 ${chaiCoffeeLimitReached ? "text-gray-400" : "text-[#8B5A2B]"}`} strokeWidth={1} />
       </Button>
       <Button
         variant="guest"

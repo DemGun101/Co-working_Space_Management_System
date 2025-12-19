@@ -47,7 +47,7 @@ const dummyUsers = [
 
 const Auth = () => {
   const [userType, setUserType] = useState<UserType>(null)
-const navigate = useNavigate()  // Add this line
+  const navigate = useNavigate()  
   
   const { mutate: login, isPending } = useLogin()
 const {

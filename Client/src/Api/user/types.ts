@@ -49,3 +49,20 @@ export interface RegisterGuestResponse {
         addedBy: 'customer' | 'office-boy'
     }
 }
+
+// Guest type for activity
+export interface Guest {
+    _id: string
+    customerId: string
+    cabinNumber: string
+    guestName: string
+    expectedTime: string
+    status: 'pending' | 'completed'
+    requestedAt: string
+    addedBy: 'customer' | 'office-boy'
+}
+
+// GET /user/activity response
+export interface GetActivityResponse {
+    guests: Guest[]
+}

@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { getCurrentUser, toggleAttendance, createOrder, registerGuest } from "../controllers/user-controller";
+import { getCurrentUser, toggleAttendance, createOrder, registerGuest, getActivity } from "../controllers/user-controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 const router = Router()
 
 router.get('/me', authMiddleware, getCurrentUser)
+router.get('/activity', authMiddleware, getActivity)
 router.patch('/attendance/toggle', authMiddleware, toggleAttendance)
 router.post('/order', authMiddleware, createOrder)
 router.post('/guest', authMiddleware, registerGuest)
