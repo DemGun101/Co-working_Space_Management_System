@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,6 @@ import { loginSchema, type LoginFormData } from './schema'
 import { useNavigate } from 'react-router-dom'
 type UserType = 'customer' | 'office-boy' | null
 
-// Dummy users for testing
 const dummyUsers = [
   {
     id: "1",
@@ -47,8 +46,18 @@ const dummyUsers = [
 
 const Auth = () => {
   const [userType, setUserType] = useState<UserType>(null)
-  const navigate = useNavigate()  
-  
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken')
+    const userData = localStorage.getItem('userData')
+
+    if (token && userData) {
+      const user = JSON.parse(userData)
+      navigate(user.role === 'customer' ? '/dashboard' : '/office-boy', { replace: true })
+    }
+  }, [navigate])
+
   const { mutate: login, isPending } = useLogin()
 const {
   register,
@@ -69,7 +78,6 @@ const {
       {
         onSuccess: (res) => {
           toast.success(`Welcome back, ${res.user.name}!`)
-          // Navigate based on role
   if (res.user.role === 'customer') {
     navigate('/dashboard')
   } else {
@@ -83,28 +91,25 @@ const {
     )
   }
 
-  // Filter users based on selected user type
   const filteredUsers = dummyUsers.filter(user => user.role === userType)
 
-  // Show welcome screen with user type selection
   if (!userType) {
     return (
-      <div className='flex h-screen w-full items-center justify-center gap-6 px-80'>
-        <Button variant="welcome" size="xl" className='flex-1 flex-col' onClick={() => setUserType('customer')}>
+      <div className='flex flex-col md:flex-row h-screen w-full items-center justify-center gap-6 px-6 md:px-20 lg:px-80'>
+        <Button variant="welcome" size="xl" className='flex-col w-full md:flex-1 md:w-auto' onClick={() => setUserType('customer')}>
           Customer
-          <User className='size-44' strokeWidth={1} />
+          <User className='size-24 md:size-44' strokeWidth={1} />
         </Button>
-        <Button variant="welcome" size="xl" className='flex-1 flex-col' onClick={() => setUserType('office-boy')}>
+        <Button variant="welcome" size="xl" className='flex-col w-full md:flex-1 md:w-auto' onClick={() => setUserType('office-boy')}>
           Office Boy
-          <Briefcase className='size-44' strokeWidth={1} />
+          <Briefcase className='size-24 md:size-44' strokeWidth={1} />
         </Button>
       </div>
     )
   }
 
-  // Show login form
   return (
-    <div className='flex h-screen w-full items-center justify-center'>
+    <div className='flex h-screen w-full items-center justify-center px-6'>
       <Card className='w-full max-w-md'>
         <CardHeader className='text-center'>
           <Button
@@ -143,7 +148,6 @@ const {
             </Button>
           </form>
 
-          {/* Dummy users box */}
           <div className='mt-4 p-3 bg-muted rounded-md'>
             <p className='text-xs text-muted-foreground mb-2'>Demo Users:</p>
             <div className='flex flex-col gap-1'>

@@ -1,6 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
 
-// Define the structure of our JWT payload
 export interface UserJwtPayload extends JwtPayload {
     userId: string;
     email: string;

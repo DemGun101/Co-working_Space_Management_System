@@ -5,6 +5,7 @@ import type {
   GetGuestsResponse,
   GetOrdersResponse,
   GetStatsResponse,
+  GetCustomersResponse,
 } from "./types";
 
 export const getOrders = async (): Promise<GetOrdersResponse> => {
@@ -37,5 +38,10 @@ export const completeGuest = async (
   const response = await apiClient.patch(
     API_ENDPOINTS.OFFICE_BOY.COMPLETE_GUEST(id)
   );
+  return response.data;
+};
+
+export const getCustomers = async (): Promise<GetCustomersResponse> => {
+  const response = await apiClient.get(API_ENDPOINTS.OFFICE_BOY.GET_CUSTOMERS);
   return response.data;
 };

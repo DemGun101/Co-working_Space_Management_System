@@ -1,21 +1,23 @@
 import type { User } from '@/Api/auth/types'
 
-// GET /user/me response
 export type GetMeResponse = User
 
 
-// POST /user/attendance/toggle response
+export interface ToggleAttendanceRequest {
+    customerId?: string
+    action?: 'check-in' | 'check-out'
+}
+
 export interface ToggleAttendanceResponse {
     message: string
     isCheckedIn: boolean
 }
 
-// POST /user/order request
 export interface CreateOrderRequest {
     type: 'chai' | 'coffee'
+    customerId?: string  // office-boy can specify customer
 }
 
-// POST /user/order response
 export interface CreateOrderResponse {
     message: string
     order: {
@@ -29,13 +31,12 @@ export interface CreateOrderResponse {
     }
 }
 
-// POST /user/guest request
 export interface RegisterGuestRequest {
     guestName: string
     expectedTime: string
+    customerId?: string  // office-boy can specify customer
 }
 
-// POST /user/guest response
 export interface RegisterGuestResponse {
     message: string
     guest: {
@@ -50,7 +51,6 @@ export interface RegisterGuestResponse {
     }
 }
 
-// Guest type for activity
 export interface Guest {
     _id: string
     customerId: string
@@ -62,19 +62,16 @@ export interface Guest {
     addedBy: 'customer' | 'office-boy'
 }
 
-// Attendance type for activity
 export interface Attendance {
     checkInTime: string;
     checkOutTime?: string;
 }
 
-// Order type for activity
 export interface ActivityOrder {
     type: 'chai' | 'coffee';
     requestedAt: string;
 }
 
-// GET /user/activity response
 export interface GetActivityResponse {
     guests: Guest[];
     attendance: Attendance | null;

@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { User, AttendanceLog, Order, GuestRequest } from "../models";
 import { UserJwtPayload } from "../types/express";
 
-// Get current user
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as UserJwtPayload)?.userId;
@@ -18,24 +17,39 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
-// Toggle attendance (check-in/check-out)
 export const toggleAttendance = async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as UserJwtPayload)?.userId;
-    const user = await User.findById(userId);
+    const currentUserId = (req.user as UserJwtPayload)?.userId;
+    const currentUser = await User.findById(currentUserId);
 
-    if (!user) {
+    if (!currentUser) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    const { customerId, action } = req.body;
+    const isOfficeBoy = currentUser.role === 'office-boy';
+    const targetUserId = isOfficeBoy && customerId ? customerId : currentUserId;
+    const targetUser = isOfficeBoy && customerId
+      ? await User.findById(customerId)
+      : currentUser;
+
+    if (!targetUser) {
+      return res.status(404).json({ message: "Customer not found" });
     }
 
     const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (user.isCheckedIn) {
-      // Check-out
+    const addedBy = isOfficeBoy && customerId ? 'office-boy' : 'customer';
+
+    const shouldCheckOut = isOfficeBoy && action
+      ? action === 'check-out'
+      : targetUser.isCheckedIn;
+
+    if (shouldCheckOut) {
       const openLog = await AttendanceLog.findOne({
-        customerId: userId,
+        customerId: targetUserId,
         checkOutTime: null,
       });
 
@@ -47,35 +61,33 @@ export const toggleAttendance = async (req: Request, res: Response) => {
         await openLog.save();
       }
 
-      user.isCheckedIn = false;
-      await user.save();
+      targetUser.isCheckedIn = false;
+      await targetUser.save();
 
       return res.json({
         message: "Checked out successfully",
         isCheckedIn: false,
       });
     } else {
-      // Check if already checked in/out today
       const todayLog = await AttendanceLog.findOne({
-        customerId: userId,
+        customerId: targetUserId,
         checkInTime: { $gte: today },
         checkOutTime: { $ne: null }
       });
 
-      if (todayLog) {
+      if (todayLog && !isOfficeBoy) {
         return res.status(400).json({ message: 'Already checked in and out today' });
       }
 
-      // Check-in
       await AttendanceLog.create({
-        customerId: userId,
-        cabinNumber: user.cabinNumber,
+        customerId: targetUserId,
+        cabinNumber: targetUser.cabinNumber,
         checkInTime: now,
-        addedBy: "customer",
+        addedBy,
       });
 
-      user.isCheckedIn = true;
-      await user.save();
+      targetUser.isCheckedIn = true;
+      await targetUser.save();
 
       return res.json({
         message: "Checked in successfully",
@@ -87,43 +99,54 @@ export const toggleAttendance = async (req: Request, res: Response) => {
   }
 };
 
-// Create order (chai/coffee)
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as UserJwtPayload)?.userId;
-    const { type } = req.body;
+    const currentUserId = (req.user as UserJwtPayload)?.userId;
+    const currentUser = await User.findById(currentUserId);
+
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { type, customerId } = req.body;
 
     if (!type || !["chai", "coffee"].includes(type)) {
       return res.status(400).json({ message: "Invalid order type" });
     }
 
-    const user = await User.findById(userId);
+    const isOfficeBoy = currentUser.role === 'office-boy';
+    const targetUserId = isOfficeBoy && customerId ? customerId : currentUserId;
+    const targetUser = isOfficeBoy && customerId
+      ? await User.findById(customerId)
+      : currentUser;
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!targetUser) {
+      return res.status(404).json({ message: "Customer not found" });
     }
 
-    if (!user.isCheckedIn) {
+    if (!isOfficeBoy && !targetUser.isCheckedIn) {
       return res
         .status(400)
         .json({ message: "You must be checked in to order" });
     }
 
-    if (user.todayChaiCoffeeUsed >= 1) {
+    if (targetUser.todayChaiCoffeeUsed >= 1) {
       return res.status(400).json({ message: "Daily limit reached" });
     }
 
+    const addedBy = isOfficeBoy && customerId ? 'office-boy' : 'customer';
+
     const order = await Order.create({
-      customerId: userId,
-      cabinNumber: user.cabinNumber,
+      customerId: targetUserId,
+      cabinNumber: targetUser.cabinNumber,
       type,
       status: "pending",
       requestedAt: new Date(),
-      addedBy: "customer",
+      addedBy,
     });
 
-    user.todayChaiCoffeeUsed = 1;
-    await user.save();
+    targetUser.todayChaiCoffeeUsed = 1;
+    await targetUser.save();
 
     res.status(201).json({ message: "Order placed", order });
   } catch (error) {
@@ -131,11 +154,16 @@ export const createOrder = async (req: Request, res: Response) => {
   }
 };
 
-// Register guest
 export const registerGuest = async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as UserJwtPayload)?.userId;
-    const { guestName, expectedTime } = req.body;
+    const currentUserId = (req.user as UserJwtPayload)?.userId;
+    const currentUser = await User.findById(currentUserId);
+
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { guestName, expectedTime, customerId } = req.body;
 
     if (!guestName || !expectedTime) {
       return res
@@ -143,26 +171,32 @@ export const registerGuest = async (req: Request, res: Response) => {
         .json({ message: "Guest name and expected time required" });
     }
 
-    const user = await User.findById(userId);
+    const isOfficeBoy = currentUser.role === 'office-boy';
+    const targetUserId = isOfficeBoy && customerId ? customerId : currentUserId;
+    const targetUser = isOfficeBoy && customerId
+      ? await User.findById(customerId)
+      : currentUser;
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!targetUser) {
+      return res.status(404).json({ message: "Customer not found" });
     }
 
-    if (!user.isCheckedIn) {
+    if (!isOfficeBoy && !targetUser.isCheckedIn) {
       return res
         .status(400)
         .json({ message: "You must be checked in to register a guest" });
     }
 
+    const addedBy = isOfficeBoy && customerId ? 'office-boy' : 'customer';
+
     const guestRequest = await GuestRequest.create({
-      customerId: userId,
-      cabinNumber: user.cabinNumber,
+      customerId: targetUserId,
+      cabinNumber: targetUser.cabinNumber,
       guestName,
       expectedTime: new Date(expectedTime),
       status: "pending",
       requestedAt: new Date(),
-      addedBy: "customer",
+      addedBy,
     });
 
     res.status(201).json({ message: "Guest registered", guestRequest });
@@ -171,28 +205,23 @@ export const registerGuest = async (req: Request, res: Response) => {
   }
 };
 
-// Get user activity (today's guests, attendance, and order)
 export const getActivity = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as UserJwtPayload)?.userId;
 
-    // Get today's start
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Get today's guests for this user
     const guests = await GuestRequest.find({
       customerId: userId,
       requestedAt: { $gte: today },
     }).sort({ requestedAt: -1 });
 
-    // Get today's attendance log for this user
     const attendance = await AttendanceLog.findOne({
       customerId: userId,
       checkInTime: { $gte: today },
     });
 
-    // Get today's order for this user
     const order = await Order.findOne({
       customerId: userId,
       requestedAt: { $gte: today },

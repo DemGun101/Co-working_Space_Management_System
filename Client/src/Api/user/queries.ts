@@ -3,6 +3,7 @@ import { userKeys } from './keys'
 import { getMe, toggleAttendance, createOrder, registerGuest, getActivity } from './fetchers'
 import type {
     GetMeResponse,
+    ToggleAttendanceRequest,
     ToggleAttendanceResponse,
     CreateOrderRequest,
     CreateOrderResponse,
@@ -19,7 +20,7 @@ export const useGetMe = () => {
 }
 
 export const useToggleAttendance = () => {
-    return useMutation<ToggleAttendanceResponse, Error, void>({
+    return useMutation<ToggleAttendanceResponse, Error, ToggleAttendanceRequest | undefined>({
         mutationKey: userKeys.toggleAttendance,
         mutationFn: toggleAttendance,
     })

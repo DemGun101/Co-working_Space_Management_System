@@ -3,11 +3,11 @@ import { CupSoda, Coffee, UserPlus, Check } from "lucide-react";
 import type { Order, Guest } from "@/Api/office-boy/types";
 
 type RequestCardProps =
-  | { type: "order"; data: Order; onComplete: (id: string) => void }
-  | { type: "guest"; data: Guest; onComplete: (id: string) => void };
+  | { type: "order"; data: Order; onComplete: (id: string) => void; customerName?: string }
+  | { type: "guest"; data: Guest; onComplete: (id: string) => void; customerName?: string };
 
 const RequestCard = (props: RequestCardProps) => {
-  const { type, data, onComplete } = props;
+  const { type, data, onComplete, customerName } = props;
 
   const getIcon = () => {
     if (type === "guest") {
@@ -24,10 +24,11 @@ const RequestCard = (props: RequestCardProps) => {
   const getTitle = () => {
     if (type === "guest") {
       const guest = data as Guest;
-      return `${guest.guestName} - Cabin ${guest.cabinNumber}`;
+      const ownerInfo = customerName ? ` (${customerName})` : "";
+      return `${guest.guestName} - ${guest.cabinNumber}${ownerInfo}`;
     }
     const order = data as Order;
-    return `${order.type.charAt(0).toUpperCase() + order.type.slice(1)} - Cabin ${order.cabinNumber}`;
+    return `${order.type.charAt(0).toUpperCase() + order.type.slice(1)} - ${order.cabinNumber}`;
   };
 
   const getTime = () => {

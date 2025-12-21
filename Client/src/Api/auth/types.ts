@@ -1,10 +1,8 @@
-// Login Request
 export interface LoginRequest {
     email: string;
     password: string;
 }
 
-// User from API
 export interface User {
     id: string;
     name: string;
@@ -15,8 +13,6 @@ export interface User {
     isCheckedIn: boolean;
 }
 
-
-// Login Response
 export interface LoginResponse {
     token: string;
     user: User;

@@ -34,6 +34,7 @@ export const API_ENDPOINTS = {
     GET_ORDERS: "/office-boy/orders",
     GET_GUESTS: "/office-boy/guests",
     GET_STATS: "/office-boy/stats",
+    GET_CUSTOMERS: "/office-boy/customers/active",
     COMPLETE_ORDER: (id: string) => `/office-boy/orders/${id}/complete`,
     COMPLETE_GUEST: (id: string) => `/office-boy/guests/${id}/complete`,
   },

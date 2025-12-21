@@ -1,4 +1,3 @@
-// Order type (returned from GET /office-boy/orders)
 export interface Order {
   _id: string;
   customerId: string;
@@ -10,10 +9,8 @@ export interface Order {
   addedBy: "customer" | "office-boy";
 }
 
-// GET /office-boy/orders response
 export type GetOrdersResponse = Order[];
 
-// Guest type (returned from GET /office-boy/guests)
 export interface Guest {
   _id: string;
   customerId: string;
@@ -26,10 +23,8 @@ export interface Guest {
   addedBy: "customer" | "office-boy";
 }
 
-// GET /office-boy/guests response
 export type GetGuestsResponse = Guest[];
 
-// GET /office-boy/stats response
 export interface GetStatsResponse {
   totalChai: number;
   totalCoffee: number;
@@ -38,14 +33,22 @@ export interface GetStatsResponse {
   currentlyInOffice: number;
 }
 
-// PATCH /office-boy/orders/:id/complete response
 export interface CompleteOrderResponse {
   message: string;
   order: Order;
 }
 
-// PATCH /office-boy/guests/:id/complete response
 export interface CompleteGuestResponse {
   message: string;
   guestRequest: Guest;
 }
+
+export interface Customer {
+  _id: string;
+  name: string;
+  cabinNumber: string;
+  isCheckedIn: boolean;
+  todayChaiCoffeeUsed: number;
+}
+
+export type GetCustomersResponse = Customer[];

@@ -85,7 +85,7 @@ const CustomerDashboard = () => {
         cabinNumber={data?.cabinNumber}
       />
 
-      <div className="flex-1 flex flex-col items-center justify-center pt-5 ">
+      <div className="flex-1 flex flex-col items-center justify-center pt-5 px-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center text-sm text-muted-foreground">
             <p>Status: {data?.isCheckedIn ? "Checked In" : "Checked Out"}</p>

@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import axios from 'axios'
 import type {
     GetMeResponse,
+    ToggleAttendanceRequest,
     ToggleAttendanceResponse,
     CreateOrderRequest,
     CreateOrderResponse,
@@ -16,9 +17,9 @@ export const getMe = async (): Promise<GetMeResponse> => {
     return response.data
 }
 
-export const toggleAttendance = async (): Promise<ToggleAttendanceResponse> => {
+export const toggleAttendance = async (data?: ToggleAttendanceRequest): Promise<ToggleAttendanceResponse> => {
     try {
-        const response = await apiClient.patch(API_ENDPOINTS.USER.TOGGLE_ATTENDANCE)
+        const response = await apiClient.patch(API_ENDPOINTS.USER.TOGGLE_ATTENDANCE, data)
         toast.success(response.data.message)
         return response.data
     } catch (error) {

@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 
 export const loginUser = async (req: Request, res: Response) => {
     try {
-        // Validate request body
         if (!req.body || !req.body.email || !req.body.password) {
             return res.status(400).json({ message: 'Email and password are required' });
         }
@@ -13,7 +12,6 @@ export const loginUser = async (req: Request, res: Response) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        // Check password
         if (user.password !== req.body.password) {
             return res.status(401).json({ message: 'Invalid password' });
         }
@@ -26,7 +24,6 @@ export const loginUser = async (req: Request, res: Response) => {
             process.env.ACCESS_TOKEN_SECRET as string,
             {expiresIn:'24h'}
         )
-        // Success
         res.status(200).json({
             token,
             user:{

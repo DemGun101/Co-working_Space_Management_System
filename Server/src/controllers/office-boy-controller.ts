@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import { Order, GuestRequest, AttendanceLog } from '../models';
+import { Order, GuestRequest, AttendanceLog, User } from '../models';
 
-// GET /office-boy/orders - Get all orders for today
 export const getOrders = async (req: Request, res: Response) => {
   try {
     const today = new Date();
@@ -18,7 +17,6 @@ export const getOrders = async (req: Request, res: Response) => {
   }
 };
 
-// GET /office-boy/guests - Get all guest requests for today
 export const getGuestRequests = async (req: Request, res: Response) => {
   try {
     const today = new Date();
@@ -35,35 +33,29 @@ export const getGuestRequests = async (req: Request, res: Response) => {
   }
 };
 
-// GET /office-boy/stats - Get today's stats
 export const getTodayStats = async (req: Request, res: Response) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Count chai orders
     const totalChai = await Order.countDocuments({
       requestedAt: { $gte: today },
       type: 'chai'
     });
 
-    // Count coffee orders
     const totalCoffee = await Order.countDocuments({
       requestedAt: { $gte: today },
       type: 'coffee'
     });
 
-    // Count guests
     const guests = await GuestRequest.countDocuments({
       requestedAt: { $gte: today }
     });
 
-    // Count check-ins
     const checkIns = await AttendanceLog.countDocuments({
       checkInTime: { $gte: today }
     });
 
-    // Count currently in office
     const currentlyInOffice = await AttendanceLog.countDocuments({
       checkInTime: { $gte: today },
       checkOutTime: null
@@ -82,7 +74,6 @@ export const getTodayStats = async (req: Request, res: Response) => {
   }
 };
 
-// PATCH /office-boy/orders/:id/complete - Mark order as complete
 export const completeOrder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -104,7 +95,6 @@ export const completeOrder = async (req: Request, res: Response) => {
   }
 };
 
-// PATCH /office-boy/guests/:id/complete - Mark guest request as complete
 export const completeGuestRequest = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -123,5 +113,18 @@ export const completeGuestRequest = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error completing guest request:', error);
     res.status(500).json({ message: 'Failed to complete guest request' });
+  }
+};
+
+export const getActiveCustomers = async (req: Request, res: Response) => {
+  try {
+    const customers = await User.find({ role: 'customer' })
+      .select('_id name cabinNumber isCheckedIn todayChaiCoffeeUsed')
+      .sort({ cabinNumber: 1 });
+
+    res.json(customers);
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    res.status(500).json({ message: 'Failed to fetch customers' });
   }
 };

@@ -1,9 +1,14 @@
-import { useGetOrders, useGetGuests } from "@/Api/office-boy";
+import { useGetOrders, useGetGuests, useGetCustomers } from "@/Api/office-boy";
 import { CupSoda, Coffee, UserPlus } from "lucide-react";
 
 const CompletedSection = () => {
   const { data: orders } = useGetOrders();
   const { data: guests } = useGetGuests();
+  const { data: customers } = useGetCustomers();
+
+  const customerNameMap = new Map(
+    customers?.map((c) => [c._id, c.name]) ?? []
+  );
 
   const completedOrders = orders?.filter((o) => o.status === "completed") ?? [];
   const completedGuests = guests?.filter((g) => g.status === "completed") ?? [];
@@ -25,7 +30,7 @@ const CompletedSection = () => {
           ) : (
             <Coffee className="size-4" style={{ color: "#8B5A2B" }} />
           )}
-          <span>Cabin {order.cabinNumber}</span>
+          <span>{order.cabinNumber}</span>
         </div>
       ))}
 
@@ -35,7 +40,7 @@ const CompletedSection = () => {
           className="flex items-center gap-2 p-2 bg-background rounded-md border text-sm"
         >
           <UserPlus className="size-4" style={{ color: "#3D7EA6" }} />
-          <span>{guest.guestName}</span>
+          <span>{guest.guestName} - {guest.cabinNumber}{customerNameMap.get(guest.customerId) ? ` (${customerNameMap.get(guest.customerId)})` : ""}</span>
         </div>
       ))}
     </div>

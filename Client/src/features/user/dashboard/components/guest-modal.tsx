@@ -22,7 +22,6 @@ const GuestModal = ({ open, onOpenChange, onSubmit }: GuestModalProps) => {
   const handleSubmit = () => {
     if (!guestName || !expectedTime) return;
 
-    // Combine today's date with the selected time to create a valid ISO date string
     const today = new Date();
     const [hours, minutes] = expectedTime.split(':');
     today.setHours(parseInt(hours), parseInt(minutes), 0, 0);

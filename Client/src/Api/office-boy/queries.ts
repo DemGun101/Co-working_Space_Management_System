@@ -3,11 +3,19 @@ import type {
   GetStatsResponse,
   GetGuestsResponse,
   GetOrdersResponse,
+  GetCustomersResponse,
   CompleteOrderResponse,
   CompleteGuestResponse,
 } from "./types";
 import { officeBoyKeys } from "./keys";
-import { completeGuest,completeOrder, getGuests, getOrders, getStats } from "./fetchers";
+import {
+  completeGuest,
+  completeOrder,
+  getGuests,
+  getOrders,
+  getStats,
+  getCustomers,
+} from "./fetchers";
 
 export const useGetOrders = () => {
   return useQuery<GetOrdersResponse, Error>({
@@ -41,5 +49,12 @@ export const useCompleteGuest = () => {
   return useMutation<CompleteGuestResponse, Error, string>({
     mutationKey: officeBoyKeys.completeGuest,
     mutationFn: completeGuest,
+  });
+};
+
+export const useGetCustomers = () => {
+  return useQuery<GetCustomersResponse, Error>({
+    queryKey: officeBoyKeys.getCustomers,
+    queryFn: getCustomers,
   });
 };

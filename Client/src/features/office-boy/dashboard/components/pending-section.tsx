@@ -1,6 +1,7 @@
 import {
   useGetOrders,
   useGetGuests,
+  useGetCustomers,
   useCompleteOrder,
   useCompleteGuest,
 } from "@/Api/office-boy";
@@ -13,6 +14,11 @@ const PendingSection = () => {
 
   const { data: orders } = useGetOrders();
   const { data: guests } = useGetGuests();
+  const { data: customers } = useGetCustomers();
+
+  const customerNameMap = new Map(
+    customers?.map((c) => [c._id, c.name]) ?? []
+  );
 
   const completeOrderMutation = useCompleteOrder();
   const completeGuestMutation = useCompleteGuest();
@@ -60,6 +66,7 @@ const PendingSection = () => {
           key={guest._id}
           type="guest"
           data={guest}
+          customerName={customerNameMap.get(guest.customerId)}
           onComplete={handleCompleteGuest}
         />
       ))}

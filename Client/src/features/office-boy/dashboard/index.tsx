@@ -23,18 +23,18 @@ const OfficeBoyDashboard = () => {
     <div className="min-h-screen flex flex-col">
       <Header user={user} onLogout={handleLogout} />
       <div className="max-w-4xl w-full mx-auto px-4 mt-6">
-        <div className="flex justify-between items-start gap-4">  
+        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
           <ManualDropdown />
-            <TodayStats />
+          <TodayStats />
         </div>
-        
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <div className="col-span-2 bg-muted rounded-md p-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="md:col-span-2 bg-muted rounded-md p-4">
             <h2 className="font-semibold mb-3">Pending</h2>
             <PendingSection />
           </div>
 
-          <div className="col-span-1 bg-muted rounded-md p-4">
+          <div className="md:col-span-1 bg-muted rounded-md p-4">
             <h2 className="font-semibold mb-3">Completed</h2>
             <CompletedSection />
           </div>
