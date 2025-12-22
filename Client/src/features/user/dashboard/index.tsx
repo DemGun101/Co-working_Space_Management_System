@@ -16,12 +16,13 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const CustomerDashboard = () => {
   const [guestModalOpen, setGuestModalOpen] = useState(false);
+  const [orderType, setOrderType] = useState<"chai" | "coffee" | null>(null);
   const navigate = useNavigate();
   const { data, refetch } = useGetMe();
   const { refetch: refetchActivity } = useGetActivity();
-  const { mutate: toggleAttendance } = useToggleAttendance();
+  const { mutate: toggleAttendance, isPending: isCheckInOutLoading } = useToggleAttendance();
   const { mutate: createOrder } = useCreateOrder();
-  const { mutate: registerGuest } = useRegisterGuest();
+  const { mutate: registerGuest, isPending: isGuestLoading } = useRegisterGuest();
   const queryClient = useQueryClient();
 
   const handleCheckInOut = () => {
@@ -34,6 +35,7 @@ const CustomerDashboard = () => {
   };
 
   const handleOrderChai = () => {
+    setOrderType("chai");
     createOrder(
       { type: "chai" },
       {
@@ -41,17 +43,24 @@ const CustomerDashboard = () => {
           refetch();
           refetchActivity();
         },
+        onSettled: () => {
+          setOrderType(null);
+        },
       }
     );
   };
 
   const handleOrderCoffee = () => {
+    setOrderType("coffee");
     createOrder(
       { type: "coffee" },
       {
         onSuccess: () => {
           refetch();
           refetchActivity();
+        },
+        onSettled: () => {
+          setOrderType(null);
         },
       }
     );
@@ -94,12 +103,17 @@ const CustomerDashboard = () => {
 
           <Actions
             isCheckedIn={data?.isCheckedIn ?? false}
-            chaiCoffeeLimitReached={(data?.todayChaiCoffeeUsed ?? 0) >= 1}
+            chaiCoffeeLimitReached={(data?.todayChaiCoffeeUsed ?? 0) >= 2}
             onCheckInOut={handleCheckInOut}
             onChai={handleOrderChai}
             onCoffee={handleOrderCoffee}
             onGuest={() => setGuestModalOpen(true)}
+            isChaiLoading={orderType === "chai"}
+            isCoffeeLoading={orderType === "coffee"}
+            isGuestLoading={isGuestLoading}
+            isCheckInOutLoading={isCheckInOutLoading}
           />
+
           <GuestModal
             open={guestModalOpen}
             onOpenChange={setGuestModalOpen}

@@ -4,7 +4,7 @@ const TodayStats = () => {
   const { data } = useGetStats();
 
   return (
-    <div className="flex text-sm text-muted-foreground gap-2 ">
+    <div className="flex text-sm flex-wrap text-muted-foreground gap-2 ">
       <div className="flex flex-col justify-center p-3 bg-muted rounded-md">
         <h2 className="font-semibold">Total Chai </h2>
         <p className="text-center">{data?.totalChai}</p>
