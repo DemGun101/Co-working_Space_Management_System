@@ -23,7 +23,7 @@ const GuestModal = ({ open, onOpenChange, onSubmit }: GuestModalProps) => {
     if (!guestName || !expectedTime) return;
 
     const today = new Date();
-    const [hours, minutes] = expectedTime.split(':');
+    const [hours, minutes] = expectedTime.split(":");
     today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
     onSubmit({ guestName, expectedTime: today.toISOString() });
@@ -60,10 +60,16 @@ const GuestModal = ({ open, onOpenChange, onSubmit }: GuestModalProps) => {
           </div>
         </div>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="cursor-pointer"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Submit Request</Button>
+          <Button onClick={handleSubmit} className="curson-pointer">
+            Submit Request
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

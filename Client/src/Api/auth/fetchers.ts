@@ -21,11 +21,9 @@ export const login = async ({email, password}: LoginRequest): Promise<LoginRespo
     } catch (error) {
         if (axios.isAxiosError(error)) {
       const message = error.response?.data?.message || 'Login failed. Please try again.';
-      // Throw a new Error with just the message you want
       throw new Error(message);
     }
 
-    // Fallback for unexpected errors
     throw new Error('An unexpected error occurred during login.')
     }
 }

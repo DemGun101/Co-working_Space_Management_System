@@ -8,6 +8,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { officeBoyKeys } from "@/Api/office-boy/keys";
 import RequestCard from "./request-card";
+import { useEffect } from "react";
+import { socket } from "@/lib/socket";
 
 const PendingSection = () => {
   const queryClient = useQueryClient();
@@ -16,9 +18,7 @@ const PendingSection = () => {
   const { data: guests } = useGetGuests();
   const { data: customers } = useGetCustomers();
 
-  const customerNameMap = new Map(
-    customers?.map((c) => [c._id, c.name]) ?? []
-  );
+  const customerNameMap = new Map(customers?.map((c) => [c._id, c.name]) ?? []);
 
   const completeOrderMutation = useCompleteOrder();
   const completeGuestMutation = useCompleteGuest();
@@ -46,6 +46,28 @@ const PendingSection = () => {
 
   const isEmpty = pendingOrders.length === 0 && pendingGuests.length === 0;
 
+  useEffect(() => {
+    const handleOrderCreated = () => {
+      queryClient.invalidateQueries({
+        queryKey: officeBoyKeys.getOrders,
+      });
+    };
+    socket.on("order:created", handleOrderCreated);
+    return () => {
+      socket.off("order:created", handleOrderCreated);
+    };
+  }, [queryClient]);
+  useEffect(() => {
+    const handleCompleteGuest = () => {
+      queryClient.invalidateQueries({
+        queryKey: officeBoyKeys.getGuests,
+      });
+    };
+    socket.on("guest registered", handleCompleteGuest);
+    return () => {
+      socket.off("guest registered", handleCompleteGuest);
+    };
+  });
   return (
     <div className="space-y-2">
       {isEmpty && (

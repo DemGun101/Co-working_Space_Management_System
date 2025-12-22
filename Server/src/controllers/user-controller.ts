@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { User, AttendanceLog, Order, GuestRequest } from "../models";
 import { UserJwtPayload } from "../types/express";
+import { io } from "..";
 
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
@@ -26,12 +27,11 @@ export const toggleAttendance = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { customerId, action } = req.body;
-    const isOfficeBoy = currentUser.role === 'office-boy';
+    const { customerId, action } = req.body || {};
+    const isOfficeBoy = currentUser.role === "office-boy";
     const targetUserId = isOfficeBoy && customerId ? customerId : currentUserId;
-    const targetUser = isOfficeBoy && customerId
-      ? await User.findById(customerId)
-      : currentUser;
+    const targetUser =
+      isOfficeBoy && customerId ? await User.findById(customerId) : currentUser;
 
     if (!targetUser) {
       return res.status(404).json({ message: "Customer not found" });
@@ -41,11 +41,10 @@ export const toggleAttendance = async (req: Request, res: Response) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const addedBy = isOfficeBoy && customerId ? 'office-boy' : 'customer';
+    const addedBy = isOfficeBoy && customerId ? "office-boy" : "customer";
 
-    const shouldCheckOut = isOfficeBoy && action
-      ? action === 'check-out'
-      : targetUser.isCheckedIn;
+    const shouldCheckOut =
+      isOfficeBoy && action ? action === "check-out" : targetUser.isCheckedIn;
 
     if (shouldCheckOut) {
       const openLog = await AttendanceLog.findOne({
@@ -72,11 +71,13 @@ export const toggleAttendance = async (req: Request, res: Response) => {
       const todayLog = await AttendanceLog.findOne({
         customerId: targetUserId,
         checkInTime: { $gte: today },
-        checkOutTime: { $ne: null }
+        checkOutTime: { $ne: null },
       });
 
       if (todayLog && !isOfficeBoy) {
-        return res.status(400).json({ message: 'Already checked in and out today' });
+        return res
+          .status(400)
+          .json({ message: "Already checked in and out today" });
       }
 
       await AttendanceLog.create({
@@ -95,7 +96,7 @@ export const toggleAttendance = async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ message: "Failed to toggle attendance" });
+    res.status(500).json({ message: `Failed to toggle attendance ${error}` });
   }
 };
 
@@ -114,11 +115,10 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid order type" });
     }
 
-    const isOfficeBoy = currentUser.role === 'office-boy';
+    const isOfficeBoy = currentUser.role === "office-boy";
     const targetUserId = isOfficeBoy && customerId ? customerId : currentUserId;
-    const targetUser = isOfficeBoy && customerId
-      ? await User.findById(customerId)
-      : currentUser;
+    const targetUser =
+      isOfficeBoy && customerId ? await User.findById(customerId) : currentUser;
 
     if (!targetUser) {
       return res.status(404).json({ message: "Customer not found" });
@@ -134,7 +134,7 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Daily limit reached" });
     }
 
-    const addedBy = isOfficeBoy && customerId ? 'office-boy' : 'customer';
+    const addedBy = isOfficeBoy && customerId ? "office-boy" : "customer";
 
     const order = await Order.create({
       customerId: targetUserId,
@@ -144,6 +144,7 @@ export const createOrder = async (req: Request, res: Response) => {
       requestedAt: new Date(),
       addedBy,
     });
+    io.emit("order:created",order)
 
     targetUser.todayChaiCoffeeUsed = 1;
     await targetUser.save();
@@ -171,11 +172,10 @@ export const registerGuest = async (req: Request, res: Response) => {
         .json({ message: "Guest name and expected time required" });
     }
 
-    const isOfficeBoy = currentUser.role === 'office-boy';
+    const isOfficeBoy = currentUser.role === "office-boy";
     const targetUserId = isOfficeBoy && customerId ? customerId : currentUserId;
-    const targetUser = isOfficeBoy && customerId
-      ? await User.findById(customerId)
-      : currentUser;
+    const targetUser =
+      isOfficeBoy && customerId ? await User.findById(customerId) : currentUser;
 
     if (!targetUser) {
       return res.status(404).json({ message: "Customer not found" });
@@ -187,7 +187,7 @@ export const registerGuest = async (req: Request, res: Response) => {
         .json({ message: "You must be checked in to register a guest" });
     }
 
-    const addedBy = isOfficeBoy && customerId ? 'office-boy' : 'customer';
+    const addedBy = isOfficeBoy && customerId ? "office-boy" : "customer";
 
     const guestRequest = await GuestRequest.create({
       customerId: targetUserId,
@@ -198,6 +198,7 @@ export const registerGuest = async (req: Request, res: Response) => {
       requestedAt: new Date(),
       addedBy,
     });
+    io.emit('guest registered',guestRequest)
 
     res.status(201).json({ message: "Guest registered", guestRequest });
   } catch (error) {
