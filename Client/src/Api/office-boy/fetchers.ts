@@ -13,7 +13,6 @@ import { toast } from "sonner";
 export const getOrders = async (): Promise<GetOrdersResponse> => {
   try {
     const response = await apiClient.get(API_ENDPOINTS.OFFICE_BOY.GET_ORDERS);
-    toast.success(response.data.message);
 
     return response.data;
   } catch (error) {

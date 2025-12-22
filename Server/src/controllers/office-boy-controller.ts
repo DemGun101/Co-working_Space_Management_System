@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Order, GuestRequest, AttendanceLog, User } from '../models';
+import { calculateTodayStats } from '../services/stats-service';
 
 export const getOrders = async (req: Request, res: Response) => {
   try {
@@ -35,39 +36,8 @@ export const getGuestRequests = async (req: Request, res: Response) => {
 
 export const getTodayStats = async (req: Request, res: Response) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const totalChai = await Order.countDocuments({
-      requestedAt: { $gte: today },
-      type: 'chai'
-    });
-
-    const totalCoffee = await Order.countDocuments({
-      requestedAt: { $gte: today },
-      type: 'coffee'
-    });
-
-    const guests = await GuestRequest.countDocuments({
-      requestedAt: { $gte: today }
-    });
-
-    const checkIns = await AttendanceLog.countDocuments({
-      checkInTime: { $gte: today }
-    });
-
-    const currentlyInOffice = await AttendanceLog.countDocuments({
-      checkInTime: { $gte: today },
-      checkOutTime: null
-    });
-
-    res.json({
-      totalChai,
-      totalCoffee,
-      guests,
-      checkIns,
-      currentlyInOffice
-    });
+    const stats = await calculateTodayStats();
+    res.json(stats);
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ message: 'Failed to fetch stats' });

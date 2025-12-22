@@ -8,11 +8,13 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { officeBoyKeys } from "@/Api/office-boy/keys";
 import RequestCard from "./request-card";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 
 const PendingSection = () => {
   const queryClient = useQueryClient();
+  const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
+  const [loadingGuestId, setLoadingGuestId] = useState<string | null>(null);
 
   const { data: orders } = useGetOrders();
   const { data: guests } = useGetGuests();
@@ -27,19 +29,27 @@ const PendingSection = () => {
   const pendingGuests = guests?.filter((g) => g.status === "pending") ?? [];
 
   const handleCompleteOrder = (id: string) => {
+    setLoadingOrderId(id);
     completeOrderMutation.mutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: officeBoyKeys.getOrders });
         queryClient.invalidateQueries({ queryKey: officeBoyKeys.getStats });
       },
+      onSettled: () => {
+        setLoadingOrderId(null);
+      },
     });
   };
 
   const handleCompleteGuest = (id: string) => {
+    setLoadingGuestId(id);
     completeGuestMutation.mutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: officeBoyKeys.getGuests });
         queryClient.invalidateQueries({ queryKey: officeBoyKeys.getStats });
+      },
+      onSettled: () => {
+        setLoadingGuestId(null);
       },
     });
   };
@@ -80,6 +90,7 @@ const PendingSection = () => {
           type="order"
           data={order}
           onComplete={handleCompleteOrder}
+          isLoading={loadingOrderId === order._id}
         />
       ))}
 
@@ -90,6 +101,7 @@ const PendingSection = () => {
           data={guest}
           customerName={customerNameMap.get(guest.customerId)}
           onComplete={handleCompleteGuest}
+          isLoading={loadingGuestId === guest._id}
         />
       ))}
     </div>

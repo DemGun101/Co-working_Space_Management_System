@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { User, AttendanceLog, Order, GuestRequest } from "../models";
 import { UserJwtPayload } from "../types/express";
 import { io } from "..";
+import { emitStatsUpdate } from "../services/stats-service";
 
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
@@ -62,7 +63,7 @@ export const toggleAttendance = async (req: Request, res: Response) => {
 
       targetUser.isCheckedIn = false;
       await targetUser.save();
-
+await emitStatsUpdate();
       return res.json({
         message: "Checked out successfully",
         isCheckedIn: false,
@@ -86,10 +87,11 @@ export const toggleAttendance = async (req: Request, res: Response) => {
         checkInTime: now,
         addedBy,
       });
+      
 
       targetUser.isCheckedIn = true;
       await targetUser.save();
-
+await emitStatsUpdate()
       return res.json({
         message: "Checked in successfully",
         isCheckedIn: true,
@@ -148,7 +150,7 @@ export const createOrder = async (req: Request, res: Response) => {
 
     targetUser.todayChaiCoffeeUsed = 1;
     await targetUser.save();
-
+await emitStatsUpdate()
     res.status(201).json({ message: "Order placed", order });
   } catch (error) {
     res.status(500).json({ message: "Failed to create order" });
@@ -199,7 +201,7 @@ export const registerGuest = async (req: Request, res: Response) => {
       addedBy,
     });
     io.emit('guest registered',guestRequest)
-
+await emitStatsUpdate()
     res.status(201).json({ message: "Guest registered", guestRequest });
   } catch (error) {
     res.status(500).json({ message: "Failed to register guest" });

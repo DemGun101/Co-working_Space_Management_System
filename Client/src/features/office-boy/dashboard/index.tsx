@@ -6,6 +6,8 @@ import TodayStats from "./components/today-stats";
 import ManualDropdown from "@/components/manual-dropdown";
 import PendingSection from "./components/pending-section";
 import CompletedSection from "./components/completed-section";
+import { useEffect } from "react";
+import { officeBoySocket } from "@/lib/socket";
 
 const OfficeBoyDashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +21,24 @@ const OfficeBoyDashboard = () => {
     localStorage.removeItem("userData");
     navigate("/");
   };
+  useEffect(() => {
+    // console.log("Socket connected:", officeBoySocket.connected);
+
+    // officeBoySocket.on("connect", () => {
+    //   console.log("Office boy socket connected!");
+    // });
+
+    officeBoySocket.on("stats-update", (newStats) => {
+      // console.log("Received stats:", newStats); // <-- Add this
+      queryClient.setQueryData(["office-boy", "stats"], newStats);
+    });
+
+    return () => {
+      officeBoySocket.off("stats-update");
+      officeBoySocket.off("connect");
+    };
+  }, [queryClient]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header user={user} onLogout={handleLogout} />

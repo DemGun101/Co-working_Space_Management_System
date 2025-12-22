@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { CupSoda, Coffee, UserPlus, Check } from "lucide-react";
 import type { Order, Guest } from "@/Api/office-boy/types";
 
 type RequestCardProps =
-  | { type: "order"; data: Order; onComplete: (id: string) => void; customerName?: string }
-  | { type: "guest"; data: Guest; onComplete: (id: string) => void; customerName?: string };
+  | { type: "order"; data: Order; onComplete: (id: string) => void; customerName?: string; isLoading?: boolean }
+  | { type: "guest"; data: Guest; onComplete: (id: string) => void; customerName?: string; isLoading?: boolean };
 
 const RequestCard = (props: RequestCardProps) => {
-  const { type, data, onComplete, customerName } = props;
+  const { type, data, onComplete, customerName, isLoading } = props;
 
   const getIcon = () => {
     if (type === "guest") {
@@ -59,9 +60,10 @@ const RequestCard = (props: RequestCardProps) => {
         variant="outline"
         className="gap-1"
         onClick={() => onComplete(data._id)}
+        disabled={isLoading}
       >
-        <Check className="size-4" />
-        Complete
+        {isLoading ? <Spinner /> : <Check className="size-4" />}
+        {isLoading ? "Completing..." : "Complete"}
       </Button>
     </div>
   );

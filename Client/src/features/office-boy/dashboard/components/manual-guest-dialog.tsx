@@ -39,9 +39,13 @@ export function ManualGuestDialog({ open, onOpenChange }: ManualGuestDialogProps
 
   const onSubmit = async (data: ManualGuestFormData) => {
     try {
+      const today = new Date();
+      const [hours, minutes] = data.expectedTime.split(":");
+      today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
       await registerGuest.mutateAsync({
         guestName: data.guestName.trim(),
-        expectedTime: new Date(data.expectedTime).toISOString(),
+        expectedTime: today.toISOString(),
         customerId: data.customerId,
       });
       queryClient.invalidateQueries({ queryKey: officeBoyKeys.getGuests });
@@ -99,7 +103,8 @@ export function ManualGuestDialog({ open, onOpenChange }: ManualGuestDialogProps
                 <Label htmlFor="expectedTime">Expected Time</Label>
                 <Input
                   id="expectedTime"
-                  type="datetime-local"
+                  type="time"
+                  className="w-fit"
                   value={field.value ?? ""}
                   onChange={field.onChange}
                 />

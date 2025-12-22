@@ -7,7 +7,7 @@ cron.schedule("00 00 * * *", async () => {
 
     await Order.deleteMany({});
     await GuestRequest.deleteMany({});
-    await User.updateMany({}, { todayChaiCoffeeUsed: 0 });
+    await User.updateMany({}, { todayChaiCoffeeUsed: 0, isCheckedIn: false });
     await AttendanceLog.deleteMany({});
   } catch (error) {}
 });
