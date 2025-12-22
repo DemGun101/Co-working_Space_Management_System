@@ -16,14 +16,22 @@ const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "https://co-working-space-management-system.vercel.app",
+      "http://localhost:5174",
+    ],
     credentials: true,
   },
 });
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "https://co-working-space-management-system.vercel.app",
+      "http://localhost:5174",
+    ],
     credentials: true,
   })
 );
