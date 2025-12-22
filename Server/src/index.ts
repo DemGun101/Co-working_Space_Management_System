@@ -18,7 +18,7 @@ export const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "https://co-working-space-management-system-front.onrender.com",
+      "https://co-working-space-management-system-1.onrender.com",
       "http://localhost:5174",
     ],
     credentials: true,
@@ -29,7 +29,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://co-working-space-management-system-front.onrender.com",
+      "https://co-working-space-management-system-1.onrender.com",
       "http://localhost:5174",
     ],
     credentials: true,
