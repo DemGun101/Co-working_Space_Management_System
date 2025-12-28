@@ -7,9 +7,10 @@ export interface User {
     id: string;
     name: string;
     email: string;
-    role: 'customer' | 'office-boy';
+    role: 'customer' | 'office-boy' | 'admin';
     cabinNumber?: string;
     todayChaiCoffeeUsed: number;
+    chaiCoffeeLimit: number;
     isCheckedIn: boolean;
 }
 

@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
 import { Order, GuestRequest, AttendanceLog, User } from '../models';
+import {
+  updateHistoryOnOrderComplete,
+  updateHistoryOnGuestComplete,
+} from '../services/history.service';
 
 export const getOrders = async (req: Request, res: Response) => {
   try {
@@ -88,6 +92,9 @@ export const completeOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
+    // Update history on order completion
+    await updateHistoryOnOrderComplete(order.customerId, order.cabinNumber);
+
     res.json({ message: 'Order completed', order });
   } catch (error) {
     console.error('Error completing order:', error);
@@ -108,6 +115,9 @@ export const completeGuestRequest = async (req: Request, res: Response) => {
     if (!guestRequest) {
       return res.status(404).json({ message: 'Guest request not found' });
     }
+
+    // Update history on guest completion
+    await updateHistoryOnGuestComplete(guestRequest.customerId, guestRequest.guestName);
 
     res.json({ message: 'Guest request completed', guestRequest });
   } catch (error) {

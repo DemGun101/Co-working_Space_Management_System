@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimePicker } from "@/components/ui/time-picker";
 import { useState } from "react";
 
 interface GuestModalProps {
@@ -49,13 +50,12 @@ const GuestModal = ({ open, onOpenChange, onSubmit }: GuestModalProps) => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="expectedTime">Expected Time</Label>
-            <Input
-              id="expectedTime"
-              type="time"
-              className="w-fit"
+            <Label>Expected Time</Label>
+            <TimePicker
               value={expectedTime}
-              onChange={(e) => setExpectedTime(e.target.value)}
+              onChange={(time) => setExpectedTime(time)}
+              placeholder="Select arrival time"
+              className="w-fit"
             />
           </div>
         </div>

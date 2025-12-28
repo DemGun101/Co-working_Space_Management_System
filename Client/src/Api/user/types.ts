@@ -77,3 +77,11 @@ export interface GetActivityResponse {
     attendance: Attendance | null;
     order: ActivityOrder | null;
 }
+export interface ChangePasswordRequest {
+    currentPassword: string;
+    newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+    message: string;
+}

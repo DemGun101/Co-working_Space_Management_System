@@ -4,4 +4,5 @@ export const userKeys = {
     toggleAttendance: ['user', 'attendance', 'toggle'] as const,
     createOrder: ['user', 'order'] as const,
     registerGuest: ['user', 'guest'] as const,
+    changePassword: ['user', 'change-password'] as const,
 }

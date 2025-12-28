@@ -8,6 +8,7 @@ import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import officeBoyRoutes from "./routes/office-boy";
+import adminRoutes from "./routes/admin";
 import "./jobs/daily-reset";
 import { Server } from "socket.io";
 
@@ -34,6 +35,7 @@ app.use(express.urlencoded());
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/office-boy", officeBoyRoutes);
+app.use("/admin", adminRoutes);
 
 // Start server
 const startServer = async () => {

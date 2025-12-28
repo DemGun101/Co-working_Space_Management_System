@@ -5,9 +5,10 @@ export interface IUser {
   name: string;
   email: string;
   password: string; // Hardcoded
-  role: 'customer' | 'office-boy';
+  role: 'customer' | 'office-boy' | 'admin';
   cabinNumber: string;
-  todayChaiCoffeeUsed: number; // Max 1 per day
+  todayChaiCoffeeUsed: number; // Current daily usage
+  chaiCoffeeLimit: number; // Max per day (default 1)
   isCheckedIn: boolean;
 }
 
@@ -17,11 +18,12 @@ const UserSchema = new Schema<IUser>(
         email:String,
         password:String,
         role:{
-            type:String,enum:['customer','office-boy']
+            type:String,enum:['customer','office-boy','admin']
         },
         cabinNumber:String,
-        todayChaiCoffeeUsed:Number,
-        isCheckedIn:Boolean
+        todayChaiCoffeeUsed: { type: Number, default: 0 },
+        chaiCoffeeLimit: { type: Number, default: 1 },
+        isCheckedIn: { type: Boolean, default: false }
     }
 )
 

@@ -2,6 +2,12 @@ import { Request, Response } from "express";
 import { User, AttendanceLog, Order, GuestRequest } from "../models";
 import { UserJwtPayload } from "../types/express";
 import { io } from "..";
+import {
+  updateHistoryOnCheckIn,
+  updateHistoryOnCheckOut,
+  updateHistoryOnOrder,
+  updateHistoryOnGuest,
+} from "../services/history.service";
 
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
@@ -58,6 +64,13 @@ export const toggleAttendance = async (req: Request, res: Response) => {
         openLog.checkOutTime = now;
         openLog.hoursSpent = Math.round(hoursSpent * 100) / 100;
         await openLog.save();
+
+        // Update history on check-out
+        await updateHistoryOnCheckOut(
+          targetUserId,
+          targetUser.cabinNumber,
+          openLog.hoursSpent
+        );
       }
 
       targetUser.isCheckedIn = false;
@@ -86,6 +99,9 @@ export const toggleAttendance = async (req: Request, res: Response) => {
         checkInTime: now,
         addedBy,
       });
+
+      // Update history on check-in
+      await updateHistoryOnCheckIn(targetUserId, targetUser.cabinNumber, addedBy);
 
       targetUser.isCheckedIn = true;
       await targetUser.save();
@@ -130,7 +146,8 @@ export const createOrder = async (req: Request, res: Response) => {
         .json({ message: "You must be checked in to order" });
     }
 
-    if (targetUser.todayChaiCoffeeUsed >= 1) {
+    const limit = targetUser.chaiCoffeeLimit || 1;
+    if (targetUser.todayChaiCoffeeUsed >= limit) {
       return res.status(400).json({ message: "Daily limit reached" });
     }
 
@@ -144,9 +161,12 @@ export const createOrder = async (req: Request, res: Response) => {
       requestedAt: new Date(),
       addedBy,
     });
-    io.emit("order:created",order)
+    io.emit("order:created", order);
 
-    targetUser.todayChaiCoffeeUsed = 1;
+    // Update history on order
+    await updateHistoryOnOrder(targetUserId, targetUser.cabinNumber, type, addedBy);
+
+    targetUser.todayChaiCoffeeUsed += 1;
     await targetUser.save();
 
     res.status(201).json({ message: "Order placed", order });
@@ -198,7 +218,16 @@ export const registerGuest = async (req: Request, res: Response) => {
       requestedAt: new Date(),
       addedBy,
     });
-    io.emit('guest registered',guestRequest)
+    io.emit("guest:registered", guestRequest);
+
+    // Update history on guest registration
+    await updateHistoryOnGuest(
+      targetUserId,
+      targetUser.cabinNumber,
+      guestName,
+      new Date(expectedTime),
+      addedBy
+    );
 
     res.status(201).json({ message: "Guest registered", guestRequest });
   } catch (error) {
@@ -245,5 +274,38 @@ export const getActivity = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch activity" });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as UserJwtPayload)?.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current password and new password are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify current password (plain text comparison since passwords aren't hashed)
+    if (user.password !== currentPassword) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to change password" });
   }
 };

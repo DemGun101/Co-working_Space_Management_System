@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { userKeys } from './keys'
-import { getMe, toggleAttendance, createOrder, registerGuest, getActivity } from './fetchers'
+import { getMe, toggleAttendance, createOrder, registerGuest, getActivity, changePassword } from './fetchers'
 import type {
     GetMeResponse,
     ToggleAttendanceRequest,
@@ -10,6 +10,8 @@ import type {
     RegisterGuestRequest,
     RegisterGuestResponse,
     GetActivityResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
 } from './types'
 
 export const useGetMe = () => {
@@ -44,5 +46,12 @@ export const useGetActivity = () => {
     return useQuery<GetActivityResponse, Error>({
         queryKey: userKeys.getActivity,
         queryFn: getActivity,
+    })
+}
+
+export const useChangePassword = () => {
+    return useMutation<ChangePasswordResponse, Error, ChangePasswordRequest>({
+        mutationKey: userKeys.changePassword,
+        mutationFn: changePassword,
     })
 }

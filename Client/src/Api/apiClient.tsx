@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
     TOGGLE_ATTENDANCE: "/user/attendance/toggle",
     CREATE_ORDER: "/user/order",
     REGISTER_GUEST: "/user/guest",
+    CHANGE_PASSWORD: "/user/change-password",
   },
   OFFICE_BOY: {
     GET_ORDERS: "/office-boy/orders",
@@ -37,5 +38,15 @@ export const API_ENDPOINTS = {
     GET_CUSTOMERS: "/office-boy/customers/active",
     COMPLETE_ORDER: (id: string) => `/office-boy/orders/${id}/complete`,
     COMPLETE_GUEST: (id: string) => `/office-boy/guests/${id}/complete`,
+  },
+  ADMIN: {
+    GET_FILTERS: "/admin/dashboard/filters",
+    GET_STATS: "/admin/dashboard/stats",
+    GET_ACTIVITY: "/admin/dashboard/activity",
+    GET_USERS: "/admin/users",
+    GET_USER: (id: string) => `/admin/users/${id}`,
+    CREATE_USER: "/admin/users",
+    UPDATE_USER: (id: string) => `/admin/users/${id}`,
+    DELETE_USER: (id: string) => `/admin/users/${id}`,
   },
 };

@@ -12,10 +12,12 @@ import Actions from "./components/actions";
 import { useState } from "react";
 import GuestModal from "./components/guest-modal";
 import Activity from "./components/activity";
+import ChangePasswordDialog from "./components/change-password-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 
 const CustomerDashboard = () => {
   const [guestModalOpen, setGuestModalOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const navigate = useNavigate();
   const { data, refetch } = useGetMe();
   const { refetch: refetchActivity } = useGetActivity();
@@ -83,18 +85,19 @@ const CustomerDashboard = () => {
         user={user}
         onLogout={handleLogout}
         cabinNumber={data?.cabinNumber}
+        onChangePassword={() => setChangePasswordOpen(true)}
       />
 
       <div className="flex-1 flex flex-col items-center justify-center pt-5 px-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center text-sm text-muted-foreground">
             <p>Status: {data?.isCheckedIn ? "Checked In" : "Checked Out"}</p>
-            <p>Today's Chai/Coffee: {data?.todayChaiCoffeeUsed ?? 0}</p>
+            <p>Today's Chai/Coffee: {data?.todayChaiCoffeeUsed ?? 0}/{data?.chaiCoffeeLimit ?? 1}</p>
           </div>
 
           <Actions
             isCheckedIn={data?.isCheckedIn ?? false}
-            chaiCoffeeLimitReached={(data?.todayChaiCoffeeUsed ?? 0) >= 1}
+            chaiCoffeeLimitReached={(data?.todayChaiCoffeeUsed ?? 0) >= (data?.chaiCoffeeLimit ?? 1)}
             onCheckInOut={handleCheckInOut}
             onChai={handleOrderChai}
             onCoffee={handleOrderCoffee}
@@ -107,6 +110,11 @@ const CustomerDashboard = () => {
           />
 
           <Activity />
+
+          <ChangePasswordDialog
+            open={changePasswordOpen}
+            onOpenChange={setChangePasswordOpen}
+          />
         </div>
       </div>
     </div>

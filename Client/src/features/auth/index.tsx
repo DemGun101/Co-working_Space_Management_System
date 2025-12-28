@@ -1,51 +1,19 @@
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Briefcase, ArrowLeft } from "lucide-react";
-import { useLogin } from "@/Api/auth";
+ import { useLogin } from "@/Api/auth";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "./schema";
 import { useNavigate } from "react-router-dom";
-type UserType = "customer" | "office-boy" | null;
 
-const dummyUsers = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@workspace.com",
-    password: "password123",
-    role: "customer",
-  },
-  {
-    id: "2",
-    name: "Sara Ali",
-    email: "sara@workspace.com",
-    password: "password123",
-    role: "customer",
-  },
-  {
-    id: "3",
-    name: "Ahmed Khan",
-    email: "ahmed@workspace.com",
-    password: "password123",
-    role: "customer",
-  },
-  {
-    id: "4",
-    name: "Shahid",
-    email: "shahid@workspace.com",
-    password: "password123",
-    role: "office-boy",
-  },
-];
+
 
 const Auth = () => {
-  const [userType, setUserType] = useState<UserType>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,9 +22,13 @@ const Auth = () => {
 
     if (token && userData) {
       const user = JSON.parse(userData);
-      navigate(user.role === "customer" ? "/dashboard" : "/office-boy", {
-        replace: true,
-      });
+      if (user.role === "customer") {
+        navigate("/dashboard", { replace: true });
+      } else if (user.role === "office-boy") {
+        navigate("/office-boy", { replace: true });
+      } else if (user.role === "admin") {
+        navigate("/admin", { replace: true });
+      }
     }
   }, [navigate]);
 
@@ -64,15 +36,10 @@ const Auth = () => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-  const handleBack = () => {
-    setUserType(null);
-    reset();
-  };
 
   const handleLogin = (data: LoginFormData) => {
     login(
@@ -82,8 +49,10 @@ const Auth = () => {
           toast.success(`Welcome back, ${res.user.name}!`);
           if (res.user.role === "customer") {
             navigate("/dashboard");
-          } else {
+          } else if (res.user.role === "office-boy") {
             navigate("/office-boy");
+          } else if (res.user.role === "admin") {
+            navigate("/admin");
           }
         },
         onError: (error) => {
@@ -93,46 +62,18 @@ const Auth = () => {
     );
   };
 
-  const filteredUsers = dummyUsers.filter((user) => user.role === userType);
 
-  if (!userType) {
-    return (
-      <div className="flex flex-col md:flex-row h-screen w-full items-center justify-center gap-6 px-6 md:px-20 lg:px-80">
-        <Button
-          variant="welcome"
-          size="xl"
-          className="flex-col w-full md:flex-1 md:w-auto"
-          onClick={() => setUserType("customer")}
-        >
-          Customer
-          <User className="size-24 md:size-44" strokeWidth={1} />
-        </Button>
-        <Button
-          variant="welcome"
-          size="xl"
-          className="flex-col w-full md:flex-1 md:w-auto"
-          onClick={() => setUserType("office-boy")}
-        >
-          Office Boy
-          <Briefcase className="size-24 md:size-44" strokeWidth={1} />
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen w-full items-center justify-center px-6">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-4 top-4 cursor-pointer"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="size-5" />
-          </Button>
-          <CardTitle className="text-2xl">Welcome!</CardTitle>
+          <img
+            src="/timeLapse-logo.svg"
+            alt="TimeLapse Logo"
+            className="w-20 h-20 mx-auto mb-2"
+          />
+          <CardTitle className="text-2xl">Welcome to TimeLapse</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -171,16 +112,7 @@ const Auth = () => {
             </Button>
           </form>
 
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <p className="text-xs text-muted-foreground mb-2">Demo Users:</p>
-            <div className="flex flex-col gap-1">
-              {filteredUsers.map((user) => (
-                <p key={user.id} className="text-xs text-muted-foreground">
-                  {user.email} / {user.password}
-                </p>
-              ))}
-            </div>
-          </div>
+          
         </CardContent>
       </Card>
     </div>

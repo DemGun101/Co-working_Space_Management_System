@@ -6,6 +6,7 @@ import { Toaster } from "./components/ui/sonner";
 import Auth from "./features/auth";
 import CustomerDashboard from "./features/user/dashboard";
 import OfficeBoyDashboard from "./features/office-boy/dashboard";
+import AdminDashboard from "./features/admin/dashboard";
 import ProtectedRoute from "./routes/protected-route";
 
 const queryClient = new QueryClient({
@@ -32,6 +33,11 @@ function App() {
   <Route path="/office-boy" element={
     <ProtectedRoute>
       <OfficeBoyDashboard />
+    </ProtectedRoute>
+  } />
+  <Route path="/admin" element={
+    <ProtectedRoute>
+      <AdminDashboard />
     </ProtectedRoute>
   } />
 </Routes>

@@ -10,6 +10,8 @@ import type {
     RegisterGuestRequest,
     RegisterGuestResponse,
     GetActivityResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
 } from './types'
 
 export const getMe = async (): Promise<GetMeResponse> => {
@@ -24,7 +26,7 @@ export const toggleAttendance = async (data?: ToggleAttendanceRequest): Promise<
         return response.data
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            toast.error(error.response?.data?.message )
+            toast.error(error.response?.data?.message)
         }
         throw error
     }
@@ -37,7 +39,7 @@ export const createOrder = async (data: CreateOrderRequest): Promise<CreateOrder
         return response.data
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            toast.error(error.response?.data?.message )
+            toast.error(error.response?.data?.message)
         }
         throw error
     }
@@ -50,7 +52,7 @@ export const registerGuest = async (data: RegisterGuestRequest): Promise<Registe
         return response.data
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            toast.error(error.response?.data?.message )
+            toast.error(error.response?.data?.message)
         }
         throw error
     }
@@ -59,4 +61,17 @@ export const registerGuest = async (data: RegisterGuestRequest): Promise<Registe
 export const getActivity = async (): Promise<GetActivityResponse> => {
     const response = await apiClient.get(API_ENDPOINTS.USER.GET_ACTIVITY)
     return response.data
+}
+
+export const changePassword = async (data: ChangePasswordRequest): Promise<ChangePasswordResponse> => {
+    try {
+        const response = await apiClient.patch(API_ENDPOINTS.USER.CHANGE_PASSWORD, data)
+        toast.success(response.data.message)
+        return response.data
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            toast.error(error.response?.data?.message)
+        }
+        throw error
+    }
 }
